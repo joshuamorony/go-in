@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 
 	openai "github.com/sashabaranov/go-openai"
@@ -14,23 +15,29 @@ type Note struct {
 }
 
 func main() {
-	// TODO allow passing input through CLI
-	example := "use go to make a program that can create a summary title given a full note and create a file"
+	if len(os.Args) < 2 {
+		fmt.Println("Going to need a note mate")
+		return
+	}
 
-	title, err := generateTitle(example)
+	input := os.Args[1]
+
+	title, err := generateTitle(input)
 	if err != nil {
 		fmt.Printf("Error generating title: %v\n", err)
 		return
 	}
 
-	fmt.Println("generate title:", title)
-	// TODO pass to createNote to create the actual file
+	createNote(Note{
+		Title: title,
+		Body:  input,
+	})
 }
 
 func generateTitle(content string) (string, error) {
 	prompt := "Summarize the following note in a title of at most 8 words." +
 		"This title is intended for the creator of the note and should focus on being clear" +
-		"and consise it does not need to be editorialised: '" + content + "'"
+		"and consise it does not need to be editorialised. It should be in kebab-case: '" + content + "'"
 
 	token := getToken()
 	client := openai.NewClient(token)
@@ -54,7 +61,22 @@ func generateTitle(content string) (string, error) {
 }
 
 func createNote(note Note) {
-	// use title/body to create note in $in folder
+	filePath := "~/Documents/notes/$in/" + note.Title + ".md"
+
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(note.Body)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	fmt.Println("Created note: ", note.Title)
 }
 
 func getToken() string {

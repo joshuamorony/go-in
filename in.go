@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	openai "github.com/sashabaranov/go-openai"
 )
@@ -61,7 +62,12 @@ func generateTitle(content string) (string, error) {
 }
 
 func createNote(note Note) {
-	filePath := "~/Documents/notes/$in/" + note.Title + ".md"
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Error getting home directory:", err)
+	}
+
+	filePath := filepath.Join(homeDir, "Documents", "notes", "$in", note.Title+".md")
 
 	file, err := os.Create(filePath)
 	if err != nil {

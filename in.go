@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -16,12 +17,16 @@ type Note struct {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Println("Going to need a note mate")
-		return
-	}
+	var input string
 
-	input := os.Args[1]
+	if len(os.Args) < 2 {
+		fmt.Print("Enter a note: ")
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		input = scanner.Text()
+	} else {
+		input = os.Args[1]
+	}
 
 	title, err := generateTitle(input)
 	if err != nil {
